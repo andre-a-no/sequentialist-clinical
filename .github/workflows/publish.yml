@@ -1,176 +1,51 @@
 name: publish
 
-# A version tag (v0.1.0, ...) publishes sequentialist-clinical to PyPI. Run by hand
-# (Actions -> publish -> Run workflow) it is a rehearsal: "none" builds and tests the
-# release without publishing anything, "testpypi" also uploads it to test.pypi.org and
-# installs it from there. Uploads use trusted publishing: no token is stored anywhere;
-# PyPI and TestPyPI must know this repository and this workflow (publish.yml) as a
-# trusted publisher, with the environments "pypi" and "testpypi". After every upload
-# the package is installed from the index and smoke-tested (tools/smoke_test.py).
-#
-# The package needs sequentialist-core from PyPI: a tag is refused until core is
-# there. Rehearsals test with core from PyPI when it is there, otherwise with the
-# commit the other workflows pin.
-
+# Publishes a release on PyPI by trusted publishing (no token): PyPI accepts the upload because it comes
+# from this workflow of andre-a-no/sequentialist-clinical in the environment "pypi". The same workflow as
+# in sequentialist-core; in addition, a release stops while sequentialist-core is not on PyPI, since the
+# package could not be installed from there without it.
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
-      publish_to:
-        description: "Rehearsal: build and test only (none), or also upload to TestPyPI"
-        type: choice
-        options: [none, testpypi]
-        default: none
-
-env:
-  CORE_REQUIREMENT: "sequentialist-core>=0.1,<0.2"
-  # until sequentialist-core is on PyPI: the commit it was released from (as in tests.yml)
-  CORE_COMMIT: "sequentialist-core @ git+https://github.com/andre-a-no/sequentialist-core@27f71847ea39cedf0a8e41a5f05042428a533443#subdirectory=packages/core"
+      tag:
+        description: "Tag of the release to publish, for example v0.1.0"
+        required: true
 
 jobs:
   build:
     runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+    env:
+      TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - id: version
-        name: the version of the package (version.py), and the tag that names it
+      - name: the tag names the version of the package
         run: |
-          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' src/sequentialist/clinical/version.py)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            test "v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME does not match version $version"; exit 1; }
-          fi
-      - name: the changelog has a dated section for this version
-        if: github.ref_type == 'tag'
-        run: grep -q "^## sequentialist-clinical ${{ steps.version.outputs.version }} — [0-9]" CHANGELOG.md
-      - name: nothing in the changelog is still unreleased (a tag on a commit with unreleased work would ship it unlisted)
-        if: github.ref_type == 'tag'
+          version=$(python -c "import re; print(re.search(r'__version__ = \"([^\"]+)\"', open('src/sequentialist/clinical/version.py').read()).group(1))")
+          echo "tag $TAG, version $version"
+          test "$TAG" = "v$version"
+      - name: sequentialist-core is on PyPI
         run: |
-          if grep -qi "^## Unreleased\|— unreleased$" CHANGELOG.md; then
-            echo "CHANGELOG.md has unreleased sections: date this version, or tag an earlier commit"; exit 1
-          fi
-      - name: sequentialist-core is on PyPI (the package cannot be installed from PyPI without it)
-        if: github.ref_type == 'tag'
+          python -m pip download --no-deps --dest /tmp/core "sequentialist-core>=0.1,<0.2" \
+            || { echo "sequentialist-core is not on PyPI: publish it first"; exit 1; }
+      - run: python -m pip install build twine && python -m build --outdir dist . && python -m twine check --strict dist/*
+      - name: the tests pass on the wheel that is published, with sequentialist-core from PyPI
         run: |
-          python -m pip download --no-deps --dest /tmp/core "$CORE_REQUIREMENT" \
-            || { echo "publish sequentialist-core to PyPI first"; exit 1; }
-      - name: the wheel of sequentialist-core the tests install (from PyPI if it is there, else the pinned commit)
-        run: |
-          python -m pip wheel --no-deps --wheel-dir core "$CORE_REQUIREMENT" || python -m pip wheel --no-deps --wheel-dir core "$CORE_COMMIT"
-      - run: python -m pip install build twine
-      - run: python -m build
-      - run: python -m twine check --strict dist/*
-      - uses: actions/upload-artifact@v6
+          python -m venv /tmp/env && /tmp/env/bin/pip install dist/*.whl
+          /tmp/env/bin/python -W error::ResourceWarning -m unittest discover -s tests -t .
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
-      - uses: actions/upload-artifact@v6
-        with:
-          name: core
-          path: core/
-
-  test:
-    # the built wheel, installed into a clean environment, on every supported Python
-    needs: build
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-      - uses: actions/download-artifact@v7
-        with:
-          name: core
-          path: core/
-      - run: python -m venv /tmp/venv && /tmp/venv/bin/pip install core/*.whl dist/*.whl pyyaml
-      - name: test suite and smoke test from outside the checkout
-        run: |
-          mkdir /tmp/outside && cp -r tests tools /tmp/outside/
-          cd /tmp/outside
-          /tmp/venv/bin/python tools/smoke_test.py "${{ needs.build.outputs.version }}"
-          /tmp/venv/bin/python -W error::ResourceWarning -m unittest discover -s tests -t .
-
-  test-oldest:
-    # the declared minimum, Python 3.8, without the optional PyYAML
-    needs: build
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v6
-      - uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-      - uses: actions/download-artifact@v7
-        with:
-          name: core
-          path: core/
-      - run: uv venv --python 3.8 /tmp/venv && uv pip install --python /tmp/venv/bin/python core/*.whl dist/*.whl
-      - name: test suite and smoke test from outside the checkout
-        run: |
-          mkdir /tmp/outside && cp -r tests tools /tmp/outside/
-          cd /tmp/outside
-          /tmp/venv/bin/python tools/smoke_test.py "${{ needs.build.outputs.version }}"
-          /tmp/venv/bin/python -W error::ResourceWarning -m unittest discover -s tests -t .
-
-  testpypi:
-    needs: [build, test, test-oldest]
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_to == 'testpypi'
-    runs-on: ubuntu-24.04
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/project/sequentialist-clinical/
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true  # a rehearsal may be repeated; an index never takes a version twice
-
-  from-testpypi:
-    # sequentialist-core comes from TestPyPI or PyPI: rehearse core on TestPyPI first, or publish it
-    needs: [build, testpypi]
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: install from TestPyPI (dependencies from PyPI) and smoke-test
-        run: |
-          python -m venv /tmp/venv
-          installed=""
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do  # the index may take a minute to serve a new upload
-            if /tmp/venv/bin/pip install --no-cache-dir --index-url https://test.pypi.org/simple/ \
-              --extra-index-url https://pypi.org/simple/ \
-              "sequentialist-clinical==${{ needs.build.outputs.version }}"; then installed=1; break; fi
-            sleep 30
-          done
-          test -n "$installed" || { echo "could not install the package from TestPyPI"; exit 1; }
-          cd /tmp && /tmp/venv/bin/python "$GITHUB_WORKSPACE/tools/smoke_test.py" "${{ needs.build.outputs.version }}"
 
   pypi:
-    needs: [build, test, test-oldest]
-    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: build
     runs-on: ubuntu-24.04
     environment:
       name: pypi
@@ -178,28 +53,8 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
-
-  from-pypi:
-    needs: [build, pypi]
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: install from PyPI and smoke-test
-        run: |
-          python -m venv /tmp/venv
-          installed=""
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do  # the index may take a minute to serve a new upload
-            if /tmp/venv/bin/pip install --no-cache-dir "sequentialist-clinical==${{ needs.build.outputs.version }}"
-            then installed=1; break; fi
-            sleep 30
-          done
-          test -n "$installed" || { echo "could not install the package from PyPI"; exit 1; }
-          cd /tmp && /tmp/venv/bin/python "$GITHUB_WORKSPACE/tools/smoke_test.py" "${{ needs.build.outputs.version }}"

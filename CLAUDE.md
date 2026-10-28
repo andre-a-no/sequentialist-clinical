@@ -76,11 +76,12 @@ sequentialist-core пока не на PyPI: пакет ставит его по 
   решил вопрос о сочетании LGPL с коммерческой лицензией.
 - Пороги и умолчания, ещё не подтверждённые владельцем: скрытие малых
   ячеек `small_cells` = 5.
-- Публикация — `.github/workflows/publish.yml` (как в core): ручной
-  запуск — репетиция (`none`) или TestPyPI, тег `vX.Y.Z` — PyPI; trusted
-  publishing, окружения `testpypi` и `pypi` (настраивает владелец). Тег не
-  пройдёт, пока sequentialist-core нет на PyPI; репетиции берут core с
-  PyPI, если он там есть, иначе с закреплённого коммита.
+- Публикация — `.github/workflows/publish.yml`, как в sequentialist-core:
+  Trusted Publishing, издатель на PyPI — владелец `andre-a-no`,
+  репозиторий `sequentialist-clinical`, workflow `publish.yml`, environment
+  `pypi`. Запускается публикацией GitHub-релиза или вручную с указанием
+  тега; тег должен быть `v` + версия из `version.py`. Публикация
+  останавливается, пока sequentialist-core нет на PyPI.
 
 ## Ограничения 0.1 (описаны в README)
 
