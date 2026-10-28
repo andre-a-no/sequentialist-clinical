@@ -1,0 +1,74 @@
+{
+  "kind": "clinical.trial/1",
+  "name": "response-example",
+  "endpoint": {
+    "type": "binary",
+    "alternative": "greater",
+    "sigma": null,
+    "strata": []
+  },
+  "arms": {
+    "treatment": "A",
+    "control": "B"
+  },
+  "design": {
+    "type": "group-sequential",
+    "alpha": 0.025,
+    "two_sided": false,
+    "spending": "pocock",
+    "rho": null,
+    "analyses": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "futility": null,
+    "futility_rho": null,
+    "power": 0.8,
+    "maximum": null,
+    "assumptions": {
+      "p_control": 0.3,
+      "p_treatment": 0.45,
+      "effect": null,
+      "sigma": null,
+      "hazard_ratio": null,
+      "allocation": 0.5
+    },
+    "method": null
+  },
+  "roles": {
+    "unblinded": [],
+    "dsmb": [],
+    "sponsor": []
+  },
+  "small_cells": 5,
+  "designed": {
+    "unit": "patients",
+    "maximum": 389,
+    "fractions": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "bounds": [
+      2.3683277035239056,
+      2.3675243087017686,
+      2.358168315041145,
+      2.3500359633036547
+    ],
+    "futility": null,
+    "spent": [
+      0.00893435048771971,
+      0.015502862673956938,
+      0.020699723481071745,
+      0.025
+    ],
+    "drift": 3.064254684416548,
+    "power": 0.8000000000000382,
+    "expected_fraction": 0.6721849511691127,
+    "expected_fraction_null": 0.9887157658393129,
+    "sequential_analysis": "0.4.0"
+  }
+}

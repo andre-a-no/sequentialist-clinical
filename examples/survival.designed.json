@@ -1,0 +1,82 @@
+{
+  "kind": "clinical.trial/1",
+  "name": "survival-example",
+  "endpoint": {
+    "type": "time-to-event",
+    "alternative": "less",
+    "sigma": null,
+    "strata": []
+  },
+  "arms": {
+    "treatment": "A",
+    "control": "B"
+  },
+  "design": {
+    "type": "group-sequential",
+    "alpha": 0.025,
+    "two_sided": false,
+    "spending": "obrien-fleming",
+    "rho": null,
+    "analyses": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "futility": "obrien-fleming",
+    "futility_rho": null,
+    "power": 0.9,
+    "maximum": null,
+    "assumptions": {
+      "p_control": null,
+      "p_treatment": null,
+      "effect": null,
+      "sigma": null,
+      "hazard_ratio": 0.7,
+      "allocation": 0.5
+    },
+    "method": null
+  },
+  "roles": {
+    "unblinded": [
+      "statistician-1"
+    ],
+    "dsmb": [
+      "dsmb-chair",
+      "dsmb-member-1",
+      "dsmb-member-2"
+    ],
+    "sponsor": [
+      "sponsor-1"
+    ]
+  },
+  "small_cells": 5,
+  "designed": {
+    "unit": "events",
+    "maximum": 358,
+    "fractions": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "bounds": [
+      2.9625880427275657,
+      2.359017719133461,
+      2.014083671369267
+    ],
+    "futility": [
+      0.3315708100417073,
+      1.2916563182627052,
+      2.014083671369267
+    ],
+    "spent": [
+      0.0015253227579889177,
+      0.009649324953512069,
+      0.02500000000000006
+    ],
+    "drift": 3.3730812668800354,
+    "power": 0.9000000056793045,
+    "expected_fraction": 0.7312428772372899,
+    "expected_fraction_null": 0.6132411081595989,
+    "sequential_analysis": "0.4.0"
+  }
+}

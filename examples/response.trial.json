@@ -1,0 +1,13 @@
+{
+  "kind": "clinical.trial/1",
+  "name": "response-example",
+  "endpoint": {"type": "binary", "alternative": "greater"},
+  "arms": {"treatment": "A", "control": "B"},
+  "design": {
+    "alpha": 0.025,
+    "analyses": [0.25, 0.5, 0.75, 1.0],
+    "spending": "pocock",
+    "power": 0.8,
+    "assumptions": {"p_control": 0.3, "p_treatment": 0.45}
+  }
+}

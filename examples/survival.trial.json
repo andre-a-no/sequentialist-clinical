@@ -1,0 +1,19 @@
+{
+  "kind": "clinical.trial/1",
+  "name": "survival-example",
+  "endpoint": {"type": "time-to-event", "alternative": "less"},
+  "arms": {"treatment": "A", "control": "B"},
+  "design": {
+    "alpha": 0.025,
+    "analyses": [0.5, 0.75, 1.0],
+    "spending": "obrien-fleming",
+    "futility": "obrien-fleming",
+    "power": 0.9,
+    "assumptions": {"hazard_ratio": 0.7}
+  },
+  "roles": {
+    "unblinded": ["statistician-1"],
+    "dsmb": ["dsmb-chair", "dsmb-member-1", "dsmb-member-2"],
+    "sponsor": ["sponsor-1"]
+  }
+}

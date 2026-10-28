@@ -1,0 +1,13 @@
+{
+  "kind": "clinical.trial/1",
+  "name": "anytime-example",
+  "endpoint": {"type": "time-to-event", "alternative": "less"},
+  "arms": {"treatment": "A", "control": "B"},
+  "design": {
+    "type": "anytime",
+    "alpha": 0.025,
+    "analyses": [0.25, 0.5, 0.75, 1.0],
+    "maximum": 400,
+    "assumptions": {"hazard_ratio": 0.7}
+  }
+}

@@ -1,0 +1,508 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andre-a-no/sequentialist/schemas/clinical.trial-1.schema.json",
+  "title": "clinical.trial/1",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "clinical.trial/1"
+      ],
+      "description": "The format of the spec: \"clinical.trial/1\"."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "endpoint": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "binary",
+            "continuous",
+            "time-to-event"
+          ],
+          "description": "binary, continuous or time-to-event."
+        },
+        "alternative": {
+          "type": "string",
+          "enum": [
+            "greater",
+            "less"
+          ],
+          "description": "The direction of benefit: greater (the treatment raises the endpoint) or less (it lowers it, a hazard for instance)."
+        },
+        "sigma": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Continuous endpoint: the known standard deviation, or null to estimate it.",
+          "default": null
+        },
+        "strata": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "The code of the control arm in the records."
+          },
+          "maxItems": 1000,
+          "description": "Time to event: the labels of the strata of a stratified log-rank test (none: unstratified).",
+          "default": []
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "alternative"
+      ],
+      "description": "The primary endpoint."
+    },
+    "arms": {
+      "type": "object",
+      "properties": {
+        "treatment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "The code of the control arm in the records."
+        },
+        "control": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "The code of the control arm in the records."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "treatment",
+        "control"
+      ],
+      "description": "Arm codes as the records carry them; records of other arms are counted and ignored."
+    },
+    "design": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "group-sequential",
+            "anytime"
+          ],
+          "description": "group-sequential (alpha spending, the default) or anytime (valid at any look).",
+          "default": "group-sequential"
+        },
+        "alpha": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 0.5,
+          "description": "The type I error: one-sided, or the total of both sides when two_sided."
+        },
+        "two_sided": {
+          "type": "boolean",
+          "default": false
+        },
+        "spending": {
+          "type": "string",
+          "enum": [
+            "obrien-fleming",
+            "pocock",
+            "power"
+          ],
+          "description": "Alpha spending function (Lan-DeMets O'Brien-Fleming, Lan-DeMets Pocock, Kim-DeMets power).",
+          "default": "obrien-fleming"
+        },
+        "rho": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The exponent of the power family.",
+          "default": null
+        },
+        "analyses": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "maximum": 1,
+                "exclusiveMinimum": 0
+              },
+              "minItems": 1,
+              "maxItems": 20
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Planned analyses as fractions of the maximum information, increasing, the last 1.",
+          "default": null
+        },
+        "futility": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "obrien-fleming",
+                "pocock",
+                "power"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Beta spending function of non-binding futility boundaries (one-sided designs).",
+          "default": null
+        },
+        "futility_rho": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "power": {
+          "anyOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The power the maximum information is computed for.",
+          "default": null
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The maximum number of patients with an outcome (binary, continuous) or of events (time to event); computed from power and assumptions when null.",
+          "default": null
+        },
+        "assumptions": {
+          "type": "object",
+          "properties": {
+            "p_control": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "exclusiveMaximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The power the maximum information is computed for.",
+              "default": null
+            },
+            "p_treatment": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "exclusiveMaximum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The power the maximum information is computed for.",
+              "default": null
+            },
+            "effect": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Continuous: the difference of means (treatment - control) the trial is powered for.",
+              "default": null
+            },
+            "sigma": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Continuous: the standard deviation assumed for the design when endpoint.sigma is null.",
+              "default": null
+            },
+            "hazard_ratio": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Time to event: the hazard ratio (treatment / control) the trial is powered for.",
+              "default": null
+            },
+            "allocation": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1,
+              "description": "The share of patients allocated to the treatment arm.",
+              "default": 0.5
+            }
+          },
+          "additionalProperties": false,
+          "description": "What the sample size is computed for."
+        },
+        "method": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "grow",
+                "mixture",
+                "universal"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Anytime designs: the method of the test of sequential-analysis (its default when null).",
+          "default": null
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "alpha"
+      ],
+      "description": "How the trial is monitored."
+    },
+    "roles": {
+      "type": "object",
+      "properties": {
+        "unblinded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 100,
+          "description": "Who decides on recommendations, unblinds and closes.",
+          "default": []
+        },
+        "dsmb": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 100,
+          "description": "Who decides on recommendations, unblinds and closes.",
+          "default": []
+        },
+        "sponsor": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 100,
+          "description": "Who decides on recommendations, unblinds and closes.",
+          "default": []
+        }
+      },
+      "additionalProperties": false,
+      "description": "Pseudonyms of the people who may give each command; an empty list lets anyone."
+    },
+    "small_cells": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Counts below this are shown as \"<n\" in the open report.",
+      "default": 5
+    },
+    "designed": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "unit": {
+              "type": "string",
+              "enum": [
+                "patients",
+                "events"
+              ]
+            },
+            "maximum": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "fractions": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "maximum": 1,
+                "exclusiveMinimum": 0
+              },
+              "minItems": 1
+            },
+            "bounds": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "description": "Efficacy boundaries for Z at the planned analyses (null: no alpha spent there)."
+            },
+            "futility": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "spent": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minItems": 1,
+              "description": "Cumulative alpha (one side) by analysis."
+            },
+            "drift": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "theta * sqrt(maximum information) the design is powered for.",
+              "default": null
+            },
+            "power": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "expected_fraction": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Expected information at stopping over the maximum, under the alternative.",
+              "default": null
+            },
+            "expected_fraction_null": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The same under H0.",
+              "default": null
+            },
+            "sequential_analysis": {
+              "type": "string",
+              "description": "The version of sequential-analysis that computed the design."
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "maximum",
+            "fractions",
+            "bounds",
+            "spent",
+            "sequential_analysis"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Written by `sequentialist clinical design`; do not edit.",
+      "default": null
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "name",
+    "endpoint",
+    "arms",
+    "design"
+  ],
+  "description": "A clinical trial monitored by interim analyses."
+}
