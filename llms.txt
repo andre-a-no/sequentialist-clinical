@@ -1,0 +1,26 @@
+# sequentialist-clinical
+
+> Application software for interim monitoring of two-arm clinical trials: declared designs, analyses at data cut-offs, committee reports and an audit trail. Treatment selection is not implemented.
+
+## Start here
+
+- [Plain-language overview and FAQ](https://github.com/andre-a-no/sequentialist-clinical/blob/main/docs/overview.md): intended users, inputs, outputs, workflow and limits.
+- [Обзор и ответы на вопросы на русском](https://github.com/andre-a-no/sequentialist-clinical/blob/main/docs/overview.ru.md): назначение, входные данные, отчёты, рабочий процесс и ограничения.
+- [README](https://github.com/andre-a-no/sequentialist-clinical/blob/main/README.md): endpoint support, design and analysis examples.
+- [Package metadata](https://github.com/andre-a-no/sequentialist-clinical/blob/main/pyproject.toml): distribution name, dependencies and Python support.
+
+## Implementation and verification
+
+- [Trial execution](https://github.com/andre-a-no/sequentialist-clinical/blob/main/src/sequentialist/clinical/trial.py): cut-off analysis, recommendations and decisions.
+- [ADaM import](https://github.com/andre-a-no/sequentialist-clinical/blob/main/src/sequentialist/clinical/adam.py): supported source formats and variables.
+- [Tests](https://github.com/andre-a-no/sequentialist-clinical/tree/main/tests): implementation checks and committed reference values.
+- [Interim monitoring example](https://github.com/andre-a-no/sequentialist-clinical/blob/main/examples/interim_monitoring.py): synthetic time-to-event trial.
+
+## Development and terms
+
+- [Agent guidance](https://github.com/andre-a-no/sequentialist-clinical/blob/main/AGENTS.md): code map and validation commands.
+- [Contributing](https://github.com/andre-a-no/sequentialist-clinical/blob/main/CONTRIBUTING.md): contribution process.
+- [License](https://github.com/andre-a-no/sequentialist-clinical/blob/main/LICENSE): AGPL terms.
+- [Commercial terms](https://github.com/andre-a-no/sequentialist-clinical/blob/main/COMMERCIAL.md): commercial licensing information.
+
+This index describes repository content; it does not establish regulatory validation, medical suitability, or guaranteed ingestion by a search or assistant service. New local documentation becomes remotely retrievable after publication.

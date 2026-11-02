@@ -163,3 +163,13 @@ Contributions need the [Contributor License Agreement](CLA.md); see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Contact: andrei@hobukob.ru, a.hobukob@gmail.com.
+
+## Documentation entry points
+
+For a plain-language description of the workflow, current scope and common
+questions, read the [overview and FAQ](docs/overview.md).
+The same overview is available [in Russian](docs/overview.ru.md).
+[llms.txt](llms.txt) indexes the repository's sources for retrieval tools;
+[AGENTS.md](AGENTS.md) maps the code and development checks. These complement
+the existing [owner guidance](CLAUDE.md) and do not establish regulatory
+validation or automatic ingestion by an assistant or search engine.
